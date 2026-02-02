@@ -1,0 +1,313 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                     SQL FOR SOC ANALYSTS - QUICK REFERENCE                     ║
+║                              CHEAT SHEET                                       ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. BASIC RETRIEVAL                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+SELECT *                                    -- All columns
+SELECT column1, column2                     -- Specific columns
+SELECT DISTINCT column                      -- Unique values
+SELECT column AS alias                      -- Rename column
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. FILTERING (WHERE)                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+WHERE column = value                        -- Equals
+WHERE column != value                       -- Not equals
+WHERE column > value                        -- Greater than
+WHERE column < value                        -- Less than
+WHERE column >= value                       -- Greater or equal
+WHERE column <= value                       -- Less or equal
+
+WHERE col1 = val AND col2 = val            -- Both conditions
+WHERE col1 = val OR col2 = val             -- Either condition
+WHERE NOT column = value                    -- Negation
+
+WHERE column IN (val1, val2, val3)         -- Match any
+WHERE column NOT IN (val1, val2)           -- Exclude
+WHERE column BETWEEN val1 AND val2         -- Range
+WHERE column LIKE '%pattern%'              -- Pattern match
+WHERE column IS NULL                        -- Missing data
+WHERE column IS NOT NULL                    -- Has data
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. WILDCARDS                                                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+%                                           -- Any characters (0 or more)
+_                                           -- Single character
+
+'%failed%'                                  -- Contains "failed"
+'Failed%'                                   -- Starts with "Failed"
+'%Login'                                    -- Ends with "Login"
+'APT__'                                     -- APT + exactly 2 chars
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4. SORTING & LIMITING                                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+ORDER BY column ASC                         -- Ascending (default)
+ORDER BY column DESC                        -- Descending
+ORDER BY col1 ASC, col2 DESC               -- Multiple columns
+
+LIMIT 10                                    -- First 10 rows
+LIMIT 10 OFFSET 20                         -- Skip 20, get 10
+LIMIT 10 OFFSET 0                          -- Page 1
+LIMIT 10 OFFSET 10                         -- Page 2
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 5. AGGREGATION FUNCTIONS                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+COUNT(*)                                    -- Count all rows
+COUNT(column)                               -- Count non-NULL values
+COUNT(DISTINCT column)                      -- Count unique values
+SUM(column)                                 -- Total sum
+AVG(column)                                 -- Average
+MIN(column)                                 -- Minimum value
+MAX(column)                                 -- Maximum value
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 6. GROUP BY & HAVING                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+GROUP BY column                             -- Group by single column
+GROUP BY col1, col2                        -- Group by multiple
+
+HAVING COUNT(*) > 10                       -- Filter groups (not rows)
+HAVING SUM(column) > value                 -- Aggregate filter
+HAVING AVG(column) > value                 -- Average filter
+
+WHERE filters rows BEFORE grouping
+HAVING filters groups AFTER grouping
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 7. JOINS                                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+INNER JOIN                                  -- Only matching records
+LEFT JOIN                                   -- All from left + matches
+RIGHT JOIN                                  -- All from right + matches
+FULL OUTER JOIN                            -- All records from both
+
+FROM table1 t1
+JOIN table2 t2 ON t1.id = t2.id
+JOIN table3 t3 ON t2.id = t3.id
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 8. SUBQUERIES                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+WHERE column IN (SELECT ...)               -- List subquery
+WHERE column > (SELECT AVG...)             -- Scalar subquery
+FROM (SELECT ...) AS alias                 -- Derived table
+SELECT (SELECT ...) AS col                 -- Column subquery
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 9. CASE EXPRESSIONS                                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+CASE column
+    WHEN value1 THEN 'result1'
+    WHEN value2 THEN 'result2'
+    ELSE 'default'
+END
+
+CASE 
+    WHEN condition1 THEN 'result1'
+    WHEN condition2 THEN 'result2'
+    ELSE 'default'
+END
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 10. STRING FUNCTIONS                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+LOWER(column)                              -- Convert to lowercase
+UPPER(column)                              -- Convert to uppercase
+LENGTH(column)                             -- String length
+SUBSTR(column, start, length)              -- Extract substring
+TRIM(column)                               -- Remove whitespace
+LTRIM(column)                              -- Left trim
+RTRIM(column)                              -- Right trim
+REPLACE(column, 'old', 'new')              -- Replace text
+column1 || column2                         -- Concatenate
+INSTR(column, 'text')                      -- Find position
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 11. DATE & TIME (SQLite)                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+datetime('now')                            -- Current UTC datetime
+datetime('now', 'localtime')               -- Local time
+date('now')                                -- Current date
+strftime('%Y', date_col)                   -- Extract year
+strftime('%m', date_col)                   -- Extract month
+strftime('%d', date_col)                   -- Extract day
+strftime('%H', date_col)                   -- Extract hour
+strftime('%M', date_col)                   -- Extract minute
+strftime('%w', date_col)                   -- Day of week (0-6)
+
+datetime('now', '-1 day')                  -- Yesterday
+datetime('now', '-7 days')                 -- 7 days ago
+datetime('now', '-1 month')                -- 1 month ago
+
+julianday(date1) - julianday(date2)       -- Days between
+
+WHERE date >= datetime('now', '-24 hours') -- Last 24 hours
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 12. MATHEMATICAL                                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
++  -  *  /                                 -- Basic arithmetic
+%                                          -- Modulo (remainder)
+ROUND(number, decimals)                    -- Round number
+ABS(number)                                -- Absolute value
+CAST(value AS INTEGER)                     -- Type conversion
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 13. UNION                                                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+UNION                                      -- Combine, remove duplicates
+UNION ALL                                  -- Combine, keep duplicates
+
+SELECT col FROM table1
+UNION
+SELECT col FROM table2
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 14. EXISTS                                                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+WHERE EXISTS (SELECT 1 FROM ...)           -- Check if related records exist
+WHERE NOT EXISTS (SELECT 1 FROM ...)       -- Check if no related records
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 15. WINDOW FUNCTIONS                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+ROW_NUMBER() OVER (...)                    -- Sequential number
+RANK() OVER (...)                          -- Ranking with gaps
+DENSE_RANK() OVER (...)                    -- Ranking without gaps
+COUNT(*) OVER (...)                        -- Running count
+SUM(col) OVER (...)                        -- Running sum
+AVG(col) OVER (...)                        -- Moving average
+
+PARTITION BY column                         -- Group within window
+ORDER BY column                            -- Order within window
+ROWS BETWEEN n PRECEDING AND CURRENT ROW   -- Window frame
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 16. SCHEMA DISCOVERY (SQLite)                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+SELECT name FROM sqlite_master 
+WHERE type='table'                         -- List tables
+
+PRAGMA table_info(table_name)              -- Table structure
+
+PRAGMA foreign_key_list(table_name)        -- Foreign keys
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ COMMON SOC PATTERNS                                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+-- Top 10 users by alert count
+SELECT user_id, COUNT(*) AS alerts
+FROM alerts
+GROUP BY user_id
+ORDER BY alerts DESC
+LIMIT 10;
+
+-- Critical events in last 24 hours
+SELECT *
+FROM events
+WHERE severity = 'Critical'
+  AND timestamp >= datetime('now', '-1 day')
+ORDER BY timestamp DESC;
+
+-- Failed logins by user
+SELECT user_id, COUNT(*) AS failed_attempts
+FROM auth_logs
+WHERE status = 'Failed'
+  AND timestamp >= datetime('now', '-1 hour')
+GROUP BY user_id
+HAVING COUNT(*) > 5;
+
+-- After-hours activity
+SELECT *
+FROM events
+WHERE CAST(strftime('%H', timestamp) AS INTEGER) NOT BETWEEN 8 AND 17
+  OR CAST(strftime('%w', timestamp) AS INTEGER) IN (0, 6)
+ORDER BY timestamp DESC;
+
+-- Large data transfers
+SELECT user_id, SUM(bytes) AS total_bytes
+FROM transfers
+WHERE date >= date('now', '-7 days')
+GROUP BY user_id
+HAVING SUM(bytes) > 10737418240  -- 10GB
+ORDER BY total_bytes DESC;
+
+-- Users with no recent activity (potential compromise)
+SELECT user_id
+FROM users u
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM events e
+    WHERE e.user_id = u.user_id
+      AND e.timestamp >= datetime('now', '-7 days')
+);
+
+-- Burst detection (5+ events in 5 minutes)
+SELECT user_id, COUNT(*) AS rapid_events
+FROM events
+WHERE timestamp BETWEEN datetime('now', '-5 minutes') AND datetime('now')
+GROUP BY user_id
+HAVING COUNT(*) >= 5;
+
+-- Risk scoring
+SELECT 
+    user_id,
+    COUNT(*) AS total_events,
+    SUM(CASE WHEN severity = 'Critical' THEN 1 ELSE 0 END) AS critical,
+    SUM(CASE WHEN severity = 'High' THEN 1 ELSE 0 END) AS high,
+    CASE 
+        WHEN SUM(CASE WHEN severity = 'Critical' THEN 1 ELSE 0 END) > 5 THEN 'CRITICAL'
+        WHEN SUM(CASE WHEN severity = 'High' THEN 1 ELSE 0 END) > 10 THEN 'HIGH'
+        WHEN COUNT(*) > 50 THEN 'MEDIUM'
+        ELSE 'LOW'
+    END AS risk_level
+FROM events
+WHERE timestamp >= datetime('now', '-24 hours')
+GROUP BY user_id
+ORDER BY critical DESC, high DESC;
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ QUERY BUILDING ORDER                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+1. SELECT columns
+2. FROM table
+3. JOIN other tables
+4. WHERE row filters
+5. GROUP BY columns
+6. HAVING group filters
+7. ORDER BY sorting
+8. LIMIT rows
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PERFORMANCE TIPS                                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+✓ Use WHERE to filter early
+✓ Use LIMIT when testing
+✓ Index commonly filtered columns
+✓ Use EXISTS instead of IN for large datasets
+✓ Avoid SELECT * in production
+✓ Use specific columns
+✓ Filter before joining when possible
+✓ Use EXPLAIN QUERY PLAN to optimize
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ SECURITY BEST PRACTICES                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+✓ Never build queries with string concatenation
+✓ Use parameterized queries
+✓ Validate input
+✓ Use read-only credentials when possible
+✓ Log all queries for audit
+✓ Limit result set sizes
+✓ Implement query timeouts
+
+═══════════════════════════════════════════════════════════════════════════════
+                              END OF CHEAT SHEET
+═══════════════════════════════════════════════════════════════════════════════
