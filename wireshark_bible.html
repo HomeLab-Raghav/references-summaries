@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireshark Complete Bible — HomeLab Corp</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #050a0e;
+    --bg2: #090f14;
+    --bg3: #0d1520;
+    --panel: #0a1628;
+    --panel2: #0f1e35;
+    --green: #00ff9d;
+    --green2: #00cc7a;
+    --cyan: #00d4ff;
+    --yellow: #ffd700;
+    --red: #ff4560;
+    --orange: #ff8c00;
+    --purple: #b47aff;
+    --text: #c8d8e8;
+    --text-dim: #5a7a9a;
+    --border: #1a3050;
+    --border2: #0d2040;
+    --glow-green: 0 0 20px rgba(0,255,157,0.3);
+    --glow-cyan: 0 0 20px rgba(0,212,255,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* SCANLINE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* GRID BG */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ═══════════════════ HEADER ═══════════════════ */
+  .hero {
+    text-align: center;
+    padding: 60px 0 50px;
+    position: relative;
+    margin-bottom: 60px;
+  }
+
+  .hero::before {
+    content: '// CLASSIFIED — HOMELAB CORP INTERNAL';
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 3px;
+    display: block;
+    margin-bottom: 20px;
+    animation: blink 2s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .hero-logo {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: clamp(32px, 6vw, 64px);
+    line-height: 1;
+    background: linear-gradient(135deg, var(--green) 0%, var(--cyan) 50%, var(--green) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 0 30px rgba(0,255,157,0.4));
+    margin-bottom: 8px;
+    animation: logo-glow 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes logo-glow {
+    from { filter: drop-shadow(0 0 20px rgba(0,255,157,0.3)); }
+    to { filter: drop-shadow(0 0 50px rgba(0,255,157,0.7)); }
+  }
+
+  .hero-sub {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    letter-spacing: 6px;
+    color: var(--cyan);
+    margin-bottom: 30px;
+    text-transform: uppercase;
+  }
+
+  .hero-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 30px;
+  }
+
+  .tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    background: var(--panel);
+  }
+
+  .tag.active {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(0,255,157,0.07);
+  }
+
+  .hero-meta {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  .hero-meta span { color: var(--yellow); }
+
+  /* CORNER DECORATIONS */
+  .hero-corner {
+    position: absolute;
+    width: 40px; height: 40px;
+    border-color: var(--green);
+    border-style: solid;
+    opacity: 0.4;
+  }
+  .hero-corner.tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
+  .hero-corner.tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+  .hero-corner.bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+  .hero-corner.br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+  /* ═══════════════════ TOC ═══════════════════ */
+  .toc {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    padding: 30px 36px;
+    margin-bottom: 60px;
+    position: relative;
+  }
+
+  .toc::before {
+    content: 'TABLE_OF_CONTENTS.init()';
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: var(--bg);
+    padding: 0 10px;
+    letter-spacing: 2px;
+  }
+
+  .toc-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+  }
+
+  .toc-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 6px 30px;
+  }
+
+  .toc-list li {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border2);
+    padding: 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.2s;
+  }
+
+  .toc-list li:hover { color: var(--green); cursor: pointer; }
+
+  .toc-num {
+    color: var(--green);
+    font-size: 10px;
+    min-width: 30px;
+  }
+
+  /* ═══════════════════ CHAPTERS ═══════════════════ */
+  .chapter {
+    margin-bottom: 70px;
+    page-break-before: always;
+  }
+
+  .chapter-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .chapter-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 80px;
+    height: 2px;
+    background: var(--green);
+    box-shadow: var(--glow-green);
+  }
+
+  .chapter-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    color: var(--green);
+    background: rgba(0,255,157,0.08);
+    border: 1px solid rgba(0,255,157,0.3);
+    padding: 4px 10px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+  }
+
+  .chapter-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(16px, 2.5vw, 22px);
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 1px;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan);
+    margin: 36px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::before {
+    content: '›';
+    color: var(--green);
+    font-size: 18px;
+  }
+
+  .subsection-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--yellow);
+    margin: 24px 0 12px;
+    letter-spacing: 1px;
+  }
+
+  .subsection-title::before { content: '# '; color: var(--text-dim); }
+
+  p {
+    color: var(--text);
+    margin-bottom: 14px;
+    max-width: 820px;
+  }
+
+  /* ═══════════════════ CALLOUT BOXES ═══════════════════ */
+  .callout {
+    border-left: 3px solid;
+    padding: 16px 20px;
+    margin: 20px 0;
+    position: relative;
+    font-size: 13px;
+  }
+
+  .callout-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .callout.soc {
+    border-color: var(--cyan);
+    background: rgba(0,212,255,0.05);
+  }
+  .callout.soc .callout-label { color: var(--cyan); }
+
+  .callout.warn {
+    border-color: var(--red);
+    background: rgba(255,69,96,0.05);
+  }
+  .callout.warn .callout-label { color: var(--red); }
+
+  .callout.tip {
+    border-color: var(--yellow);
+    background: rgba(255,215,0,0.05);
+  }
+  .callout.tip .callout-label { color: var(--yellow); }
+
+  .callout.pro {
+    border-color: var(--green);
+    background: rgba(0,255,157,0.05);
+  }
+  .callout.pro .callout-label { color: var(--green); }
+
+  /* ═══════════════════ TABLES ═══════════════════ */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+
+  thead tr {
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    padding: 10px 14px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border2);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: rgba(0,212,255,0.04); }
+
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+
+  td {
+    padding: 9px 14px;
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  td:first-child {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--yellow);
+    white-space: nowrap;
+    font-size: 12px;
+  }
+
+  td code {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11.5px;
+    color: var(--green);
+    background: rgba(0,255,157,0.07);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  /* ═══════════════════ CODE BLOCKS ═══════════════════ */
+  .code-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    padding: 16px 20px;
+    margin: 12px 0 20px;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .code-block-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border2);
+    padding-bottom: 8px;
+  }
+
+  .code-block pre {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12.5px;
+    color: var(--green);
+    line-height: 1.9;
+    white-space: pre;
+  }
+
+  .code-block .comment { color: var(--text-dim); }
+  .code-block .keyword { color: var(--cyan); }
+  .code-block .value { color: var(--yellow); }
+  .code-block .operator { color: var(--red); }
+
+  /* ═══════════════════ FILTER BLOCKS ═══════════════════ */
+  .filter-block {
+    background: rgba(0,255,157,0.04);
+    border: 1px solid rgba(0,255,157,0.2);
+    padding: 14px 20px;
+    margin: 14px 0;
+  }
+
+  .filter-block-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+  }
+
+  .filter-line {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text);
+    line-height: 2;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filter-line .f { color: var(--green); }
+  .filter-line .c { color: var(--text-dim); font-size: 11px; }
+
+  /* ═══════════════════ HEX TABLE ═══════════════════ */
+  .hex-display {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 14px;
+    margin: 12px 0;
+    overflow-x: auto;
+  }
+
+  .hex-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr;
+    gap: 20px;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .hex-row:last-child { border-bottom: none; }
+
+  .hex-offset { color: var(--text-dim); }
+  .hex-bytes { color: var(--cyan); letter-spacing: 1px; }
+  .hex-ascii { color: var(--yellow); }
+
+  /* ═══════════════════ SCENARIO BLOCKS ═══════════════════ */
+  .scenario {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    margin: 20px 0;
+    overflow: hidden;
+  }
+
+  .scenario-header {
+    background: var(--panel2);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .scenario-icon {
+    font-size: 18px;
+  }
+
+  .scenario-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    color: var(--yellow);
+    letter-spacing: 2px;
+  }
+
+  .scenario-steps {
+    padding: 0;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr;
+    gap: 16px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border2);
+    align-items: start;
+    font-size: 12.5px;
+  }
+
+  .step:last-child { border-bottom: none; }
+  .step:hover { background: rgba(255,255,255,0.02); }
+
+  .step-num {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--green);
+    font-size: 11px;
+    padding-top: 2px;
+  }
+
+  .step-action {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .step-detail {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text-dim);
+    font-size: 11.5px;
+  }
+
+  /* ═══════════════════ PORT TABLE ═══════════════════ */
+  .port-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 8px;
+    margin: 16px 0;
+  }
+
+  .port-item {
+    background: var(--panel);
+    border: 1px solid var(--border2);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .port-item:hover {
+    border-color: var(--border);
+    background: var(--panel2);
+  }
+
+  .port-item.danger { border-left: 2px solid var(--red); }
+  .port-item.secure { border-left: 2px solid var(--green); }
+  .port-item.neutral { border-left: 2px solid var(--text-dim); }
+
+  .port-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--yellow);
+    min-width: 45px;
+  }
+
+  .port-info { flex: 1; }
+  .port-name { color: var(--text); font-size: 12.5px; font-weight: 500; }
+  .port-proto { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--text-dim); }
+
+  /* ═══════════════════ SHORTCUT GRID ═══════════════════ */
+  .shortcut-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 6px;
+    margin: 14px 0;
+  }
+
+  .shortcut-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--panel);
+    border: 1px solid var(--border2);
+  }
+
+  .kbd {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--bg);
+    background: var(--cyan);
+    padding: 2px 8px;
+    white-space: nowrap;
+    min-width: 100px;
+    text-align: center;
+  }
+
+  .kbd-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  /* ═══════════════════ FLAG / BADGE DISPLAYS ═══════════════════ */
+  .flag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin: 14px 0;
+  }
+
+  .flag-item {
+    background: var(--panel);
+    border: 1px solid var(--border2);
+    padding: 12px;
+    text-align: center;
+  }
+
+  .flag-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+
+  .flag-bit {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .flag-desc { font-size: 11.5px; color: var(--text-dim); }
+
+  /* ═══════════════════ DIVIDERS ═══════════════════ */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border2);
+    margin: 40px 0;
+    position: relative;
+  }
+
+  /* ═══════════════════ FOOTER ═══════════════════ */
+  .footer {
+    text-align: center;
+    padding: 40px 0 20px;
+    border-top: 1px solid var(--border);
+    margin-top: 80px;
+  }
+
+  .footer-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    color: var(--green);
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+  }
+
+  .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .footer-links a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--cyan); }
+
+  .footer-copy {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--border);
+    letter-spacing: 2px;
+  }
+
+  /* ═══════════════════ PRINT ═══════════════════ */
+  @media print {
+    body::before, body::after { display: none; }
+    .page-wrap { max-width: 100%; padding: 20px; }
+    .chapter { page-break-before: always; }
+    a { text-decoration: none; }
+  }
+
+  /* ═══════════════════ INLINE CODE ═══════════════════ */
+  code {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    background: rgba(0,255,157,0.08);
+    padding: 1px 6px;
+    border: 1px solid rgba(0,255,157,0.15);
+  }
+
+  strong { color: #e8f0f8; font-weight: 600; }
+
+  /* OSI LAYER VISUAL */
+  .osi-stack {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-width: 600px;
+  }
+
+  .osi-layer {
+    display: grid;
+    grid-template-columns: 50px 120px 1fr 140px;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    border: 1px solid var(--border2);
+    transition: border-color 0.2s;
+  }
+
+  .osi-layer:hover { border-color: var(--border); }
+
+  .osi-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 900;
+    text-align: center;
+  }
+
+  .osi-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .osi-desc { color: var(--text-dim); font-size: 12px; }
+
+  .osi-proto {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: right;
+  }
+
+  .l7 { background: rgba(180,122,255,0.08); }
+  .l7 .osi-num { color: var(--purple); }
+  .l7 .osi-name { color: var(--purple); }
+
+  .l4 { background: rgba(0,212,255,0.06); }
+  .l4 .osi-num { color: var(--cyan); }
+  .l4 .osi-name { color: var(--cyan); }
+
+  .l3 { background: rgba(0,255,157,0.05); }
+  .l3 .osi-num { color: var(--green); }
+  .l3 .osi-name { color: var(--green); }
+
+  .l2 { background: rgba(255,215,0,0.05); }
+  .l2 .osi-num { color: var(--yellow); }
+  .l2 .osi-name { color: var(--yellow); }
+
+  .l1 { background: rgba(255,140,0,0.05); }
+  .l1 .osi-num { color: var(--orange); }
+  .l1 .osi-name { color: var(--orange); }
+
+  ul.styled {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 20px;
+  }
+
+  ul.styled li {
+    padding: 5px 0 5px 20px;
+    position: relative;
+    color: var(--text);
+    border-bottom: 1px solid var(--border2);
+    font-size: 13px;
+  }
+
+  ul.styled li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-size: 10px;
+    top: 7px;
+  }
+
+  /* ATTACK BADGE */
+  .attack-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,69,96,0.1);
+    border: 1px solid rgba(255,69,96,0.3);
+    padding: 2px 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 1px;
+    margin: 2px;
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- ═══════════════════ HERO ═══════════════════ -->
+  <div class="hero">
+    <div class="hero-corner tl"></div>
+    <div class="hero-corner tr"></div>
+    <div class="hero-corner bl"></div>
+    <div class="hero-corner br"></div>
+
+    <div class="hero-logo">WIRESHARK</div>
+    <div class="hero-logo" style="font-size:clamp(16px,3vw,28px); margin-top:-8px; margin-bottom:16px;">COMPLETE BIBLE</div>
+    <div class="hero-sub">HomeLab Corp · Security Reference Series</div>
+
+    <div class="hero-tags">
+      <span class="tag active">Protocols</span>
+      <span class="tag active">Hex Reading</span>
+      <span class="tag active">Display Filters</span>
+      <span class="tag active">OSI Model</span>
+      <span class="tag active">Attack Detection</span>
+      <span class="tag active">SOC Analysis</span>
+      <span class="tag">TLS/SSL</span>
+      <span class="tag">Kerberos</span>
+      <span class="tag">Active Directory</span>
+    </div>
+
+    <div class="hero-meta">
+      Author: <span>Raghav</span> &nbsp;|&nbsp;
+      Date: <span>April 2026</span> &nbsp;|&nbsp;
+      Series: <span>Security+ Prep &amp; Home Lab</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ TOC ═══════════════════ -->
+  <div class="toc">
+    <div class="toc-title">INDEX</div>
+    <ul class="toc-list">
+      <li><span class="toc-num">CH.01</span> What Is Wireshark &amp; How It Works</li>
+      <li><span class="toc-num">CH.02</span> The OSI Model in Wireshark</li>
+      <li><span class="toc-num">CH.03</span> Reading Hex Values &amp; Bytes Panel</li>
+      <li><span class="toc-num">CH.04</span> Every Protocol You'll Encounter</li>
+      <li><span class="toc-num">CH.04.1</span> Layer 2 — Ethernet &amp; ARP</li>
+      <li><span class="toc-num">CH.04.2</span> Layer 3 — IPv4, IPv6, ICMP</li>
+      <li><span class="toc-num">CH.04.3</span> Layer 4 — TCP &amp; UDP</li>
+      <li><span class="toc-num">CH.04.4</span> Layer 7 — DNS, HTTP, TLS, DHCP, SSH...</li>
+      <li><span class="toc-num">CH.05</span> Common Port Numbers Reference</li>
+      <li><span class="toc-num">CH.06</span> Display Filter Complete Reference</li>
+      <li><span class="toc-num">CH.07</span> Home Lab Attack Scenarios</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════ CHAPTER 1 ═══════════════════ -->
+  <div class="chapter" id="ch1">
+    <div class="chapter-header">
+      <span class="chapter-num">CH · 01</span>
+      <h2 class="chapter-title">What Is Wireshark &amp; How It Works</h2>
+    </div>
+
+    <p>Wireshark is a free, open-source packet analyzer — also called a network sniffer or packet capture tool. It captures every packet that flows through a network interface on your machine and lets you inspect each one in full detail, down to the individual bit.</p>
+
+    <p>When you capture traffic, Wireshark puts your network adapter into <strong>promiscuous mode</strong>, meaning it captures ALL packets on the network segment — not just ones addressed to your machine. On a switched network you'll mostly see your own traffic, but on a hub or Wi-Fi in monitor mode you see everyone's.</p>
+
+    <div class="callout soc">
+      <div class="callout-label">▸ WHY THIS MATTERS FOR SOC ANALYSTS</div>
+      Wireshark is the gold standard for network forensics. When an IDS/SIEM like Wazuh fires an alert, a SOC analyst pulls the raw packet capture (PCAP) to confirm what actually happened. No alert tells the full story — <strong>the packets do</strong>. Learning to read PCAPs is a core blue team skill.
+    </div>
+
+    <div class="section-title">1.1 — The Three Panels</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>PANEL</th>
+            <th>LOCATION</th>
+            <th>WHAT IT SHOWS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Packet List</td>
+            <td>Top</td>
+            <td>One row per captured packet. Shows time, source, destination, protocol, length, and a summary. Click any row to inspect it.</td>
+          </tr>
+          <tr>
+            <td>Packet Details</td>
+            <td>Middle</td>
+            <td>An expandable tree showing every protocol layer inside the selected packet. This is where you read the data.</td>
+          </tr>
+          <tr>
+            <td>Packet Bytes</td>
+            <td>Bottom</td>
+            <td>The raw bytes of the packet in hexadecimal on the left, ASCII text equivalent on the right.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">1.2 — Capture vs Display Filters</div>
+    <p>These are two completely different things — beginners confuse them constantly:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>TYPE</th><th>WHEN APPLIED</th><th>SYNTAX</th><th>EXAMPLE</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Capture Filter</td>
+            <td>BEFORE capture starts — limits what gets saved</td>
+            <td>BPF (Berkeley Packet Filter)</td>
+            <td><code>tcp port 80</code></td>
+          </tr>
+          <tr>
+            <td>Display Filter</td>
+            <td>AFTER capture — hides/shows packets already captured</td>
+            <td>Wireshark filter language</td>
+            <td><code>tcp.flags.syn == 1</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-label">▸ PRO TIP</div>
+      Always save your captures when doing lab attacks. <strong>File → Save As → .pcapng</strong>. This lets you re-analyze later and use the files in your LinkedIn posts or portfolio writeups.
+    </div>
+  </div>
+
+  <!-- ═══════════════════ CHAPTER 2 ═══════════════════ -->
+  <div class="chapter" id="ch2">
+    <div class="chapter-header">
+      <span class="chapter-num">CH · 02</span>
+      <h2 class="chapter-title">The OSI Model in Wireshark</h2>
+    </div>
+
+    <p>Every packet in Wireshark is a stack of protocol layers. When you click a packet and expand the details panel, each expandable section is one OSI layer. Data is <strong>encapsulated going down the stack</strong>, and decapsulated going up.</p>
+
+    <div class="osi-stack">
+      <div class="osi-layer l7"><span class="osi-num">7</span><span class="osi-name">Application</span><span class="osi-desc">The actual app data being sent</span><span class="osi-proto">HTTP · DNS · FTP · SSH</span></div>
+      <div class="osi-layer l7"><span class="osi-num">6</span><span class="osi-name">Presentation</span><span class="osi-desc">Encoding, encryption, compression</span><span class="osi-proto">TLS/SSL · JPEG · ASCII</span></div>
+      <div class="osi-layer l7"><span class="osi-num">5</span><span class="osi-name">Session</span><span class="osi-desc">Managing connections &amp; sessions</span><span class="osi-proto">NetBIOS · RPC · SOCKS</span></div>
+      <div class="osi-layer l4"><span class="osi-num">4</span><span class="osi-name">Transport</span><span class="osi-desc">Reliable delivery, ports, flow control</span><span class="osi-proto">TCP · UDP · SCTP</span></div>
+      <div class="osi-layer l3"><span class="osi-num">3</span><span class="osi-name">Network</span><span class="osi-desc">Logical addressing, routing</span><span class="osi-proto">IPv4 · IPv6 · ICMP</span></div>
+      <div class="osi-layer l2"><span class="osi-num">2</span><span class="osi-name">Data Link</span><span class="osi-desc">Physical addressing, switches</span><span class="osi-proto">Ethernet · Wi-Fi · ARP</span></div>
+      <div class="osi-layer l1"><span class="osi-num">1</span><span class="osi-name">Physical</span><span class="osi-desc">Raw bits on the wire</span><span class="osi-proto">Frame metadata</span></div>
+    </div>
+
+    <div class="section-title">2.1 — Reading a Full Packet Stack</div>
+    <p>Here's what a single HTTP request looks like expanded in Wireshark, layer by layer:</p>
+
+    <div class="callout pro">
+      <div class="callout-label">▸ FRAME (LAYER 1)</div>
+      <code>Frame 42: 200 bytes on wire, captured on interface eth1</code><br>
+      Metadata Wireshark adds — interface, timestamp, raw byte count. Nothing inside the actual network data.
+    </div>
+    <div class="callout" style="border-color:var(--yellow);background:rgba(255,215,0,0.04)">
+      <div class="callout-label" style="color:var(--yellow)">▸ ETHERNET II (LAYER 2)</div>
+      <code>Destination: aa:bb:cc:dd:ee:ff &nbsp;&nbsp; Source: 11:22:33:44:55:66 &nbsp;&nbsp; Type: IPv4 (0x0800)</code><br>
+      MAC addresses only work on the LOCAL network segment. Routers strip and replace them at each hop.
+    </div>
+    <div class="callout" style="border-color:var(--green);background:rgba(0,255,157,0.04)">
+      <div class="callout-label" style="color:var(--green)">▸ IPv4 (LAYER 3)</div>
+      <code>Source: 192.168.56.102 (Kali) &nbsp;&nbsp; Destination: 192.168.56.101 (WEB01) &nbsp;&nbsp; TTL: 64 &nbsp;&nbsp; Protocol: TCP</code>
+    </div>
+    <div class="callout" style="border-color:var(--cyan);background:rgba(0,212,255,0.04)">
+      <div class="callout-label" style="color:var(--cyan)">▸ TCP (LAYER 4)</div>
+      <code>Src Port: 54231 &nbsp;&nbsp; Dst Port: 80 &nbsp;&nbsp; Seq: 1 &nbsp;&nbsp; Flags: SYN</code><br>
+      Ports identify WHICH APPLICATION on the machine gets the data.
+    </div>
+    <div class="callout" style="border-color:var(--purple);background:rgba(180,122,255,0.04)">
+      <div class="callout-label" style="color:var(--purple)">▸ HTTP (LAYER 7)</div>
+      <code>GET /index.html HTTP/1.1 &nbsp;&nbsp; Host: 192.168.56.101</code><br>
+      The actual request. Only visible if traffic is NOT encrypted (HTTP, not HTTPS).
+    </div>
+  </div>
+
+  <!-- ═══════════════════ CHAPTER 3 ═══════════════════ -->
+  <div class="chapter" id="ch3">
+    <div class="chapter-header">
+      <span class="chapter-num">CH · 03</span>
+      <h2 class="chapter-title">Reading Hex Values &amp; The Bytes Panel</h2>
+    </div>
+
+    <p>The bottom panel in Wireshark shows the raw bytes of the packet in hexadecimal. This is the actual data that travelled on the wire. At first it looks like gibberish — but once you understand the structure, you can read any packet without the protocol parser.</p>
+
+    <div class="section-title">3.1 — Hex Basics</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>DECIMAL</th><th>BINARY</th><th>HEX</th><th>WHAT IT MEANS</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>00000000</td><td><code>0x00</code></td><td>Null — zero</td></tr>
+          <tr><td>10</td><td>00001010</td><td><code>0x0A</code></td><td>Number ten</td></tr>
+          <tr><td>15</td><td>00001111</td><td><code>0x0F</code></td><td>Number fifteen</td></tr>
+          <tr><td>255</td><td>11111111</td><td><code>0xFF</code></td><td>Max value for 1 byte</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout pro">
+      <div class="callout-label">▸ QUICK CONVERSION RULES</div>
+      <code>0x</code> prefix means hexadecimal &nbsp;·&nbsp; A=10, B=11, C=12, D=13, E=14, F=15<br>
+      To convert hex to decimal: multiply left digit × 16, add right digit.<br>
+      Example: <code>0x4F</code> = (4×16) + 15 = <strong>79</strong>
+    </div>
+
+    <div class="section-title">3.2 — Bytes Panel Layout</div>
+
+    <div class="hex-display">
+      <div class="hex-row" style="color:var(--text-dim);font-size:10px;letter-spacing:1px;margin-bottom:8px;">
+        <span>OFFSET</span><span>HEX BYTES (16 per row)</span><span>ASCII</span>
+      </div>
+      <div class="hex-row">
+        <span class="hex-offset">0000</span>
+        <span class="hex-bytes">45 00 00 3c 1a 46 40 00  40 06 9c 2c c0 a8 38 66</span>
+        <span class="hex-ascii">E..&lt;.F@. @..,..8f</span>
+      </div>
+      <div class="hex-row">
+        <span class="hex-offset">0010</span>
+        <span class="hex-bytes">47 45 54 20 2f 69 6e 64  65 78 2e 68 74 6d 6c 20</span>
+        <span class="hex-ascii">GET /index.html </span>
+      </div>
+    </div>
+
+    <div class="section-title">3.3 — Reading an IP from Hex</div>
+
+    <div class="callout soc">
+      <div class="callout-label">▸ HOW TO READ AN IPv4 ADDRESS FROM HEX</div>
+      An IPv4 address is always exactly 4 bytes. Each byte = one octet of the IP.<br><br>
+      Example: <code>c0 a8 00 01</code><br>
+      &nbsp;&nbsp;<code>c0</code> = 192 &nbsp;&nbsp; <code>a8</code> = 168 &nbsp;&nbsp; <code>00</code> = 0 &nbsp;&nbsp; <code>01</code> = 1<br>
+      Result: <strong>192.168.0.1</strong> — your typical home router IP
+    </div>
+
+    <div class="section-title">3.4 — Common Hex Values to Memorize</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>HEX</th><th>DECIMAL</th><th>MEANING IN PACKETS</th></tr></thead>
+        <tbody>
+          <tr><td><code>0x0800</code></td><td>2048</td><td>IPv4 — EtherType in Ethernet frame</td></tr>
+          <tr><td><code>0x0806</code></td><td>2054</td><td>ARP — EtherType in Ethernet frame</td></tr>
+          <tr><td><code>0x86DD</code></td><td>34525</td><td>IPv6 — EtherType in Ethernet frame</td></tr>
+          <tr><td><code>0x06</code></td><td>6</td><td>TCP — IP Protocol field</td></tr>
+          <tr><td><code>0x11</code></td><td>17</td><td>UDP — IP Protocol field</td></tr>
+          <tr><td><code>0x01</code></td><td>1</td><td>ICMP — IP Protocol field</td></tr>
+          <tr><td><code>0x50</code></td><td>80</td><td>Port 80 — HTTP</td></tr>
+          <tr><td><code>0x01BB</code></td><td>443</td><td>Port 443 — HTTPS</td></tr>
+          <tr><td><code>0x0035</code></td><td>53</td><td>Port 53 — DNS</td></tr>
+          <tr><td><code>0x0016</code></td><td>22</td><td>Port 22 — SSH</td></tr>
+          <tr><td><code>0x0017</code></td><td>23</td><td>Port 23 — Telnet (INSECURE)</td></tr>
+          <tr><td><code>0xFF</code></td><td>255</td><td>Broadcast / max byte value</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ CHAPTER 4 ═══════════════════ -->
+  <div class="chapter" id="ch4">
+    <div class="chapter-header">
+      <span class="chapter-num">CH · 04</span>
+      <h2 class="chapter-title">Every Protocol You Will Encounter</h2>
+    </div>
+
+    <!-- 4.1 Layer 2 -->
+    <div class="section-title">4.1 — Layer 2 Protocols</div>
+
+    <div class="subsection-title">Ethernet II</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>FIELD</th><th>SIZE</th><th>WHAT IT CONTAINS</th></tr></thead>
+        <tbody>
+          <tr><td>Destination MAC</td><td>6 bytes</td><td>MAC address of the receiver</td></tr>
+          <tr><td>Source MAC</td><td>6 bytes</td><td>MAC address of the sender</td></tr>
+          <tr><td>EtherType</td><td>2 bytes</td><td><code>0x0800</code>=IPv4 · <code>0x0806</code>=ARP · <code>0x86DD</code>=IPv6</td></tr>
+          <tr><td>Payload</td><td>46–1500 bytes</td><td>The actual data (IP packet, ARP, etc.)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="filter-block">
+      <div class="filter-block-title">DISPLAY FILTERS — ETHERNET</div>
+      <div class="filter-line">
+        <span class="f">eth.addr == aa:bb:cc:dd:ee:ff</span><span class="c">// filter by MAC</span>
+      </div>
+      <div class="filter-line">
+        <span class="f">eth.type == 0x0800</span><span class="c">// show only IPv4 frames</span>
+      </div>
+    </div>
+
+    <div class="subsection-title">ARP — Address Resolution Protocol</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ARP TYPE</th><th>MEANING</th><th>SENDER</th></tr></thead>
+        <tbody>
+          <tr><td>ARP Request</td><td>Broadcast: 'What MAC has this IP?'</td><td>Any device needing to reach a local IP</td></tr>
+          <tr><td>ARP Reply</td><td>Unicast: 'That IP is mine, here is my MAC'</td><td>The device that owns that IP</td></tr>
+          <tr><td>Gratuitous ARP</td><td>Device announces itself unprompted at boot</td><td>Device that just got an IP</td></tr>
+          <tr><td>ARP Probe</td><td>Checks if an IP is already in use</td><td>Device about to claim an IP (DHCP)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">▸ ATTACK: ARP POISONING / SPOOFING</div>
+      ARP has no authentication — anyone can send a fake ARP reply claiming to own any IP. Attacker sends fake ARPs saying "the gateway IP is at MY MAC" → All victim traffic routes through attacker (MITM).<br><br>
+      <span class="attack-badge">⚠ MAN IN THE MIDDLE</span>
+      <span class="attack-badge">⚠ ARP SPOOFING</span><br><br>
+      Detection filter: <code>arp.duplicate-address-detected</code><br>
+      Lab test: use <code>arpspoof</code> on Kali to simulate, capture on Ethernet 2.
+    </div>
+
+    <!-- 4.2 Layer 3 -->
+    <div class="section-title">4.2 — Layer 3 Protocols</div>
+
+    <div class="subsection-title">IPv4 Header Fields</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>FIELD</th><th>SIZE</th><th>WHAT IT DOES</th></tr></thead>
+        <tbody>
+          <tr><td>Version</td><td>4 bits</td><td>Always 4 for IPv4</td></tr>
+          <tr><td>IHL</td><td>4 bits</td><td>Header length in 32-bit words. Value 5 = 20 bytes (minimum)</td></tr>
+          <tr><td>Total Length</td><td>2 bytes</td><td>Total size of IP packet (header + data) in bytes</td></tr>
+          <tr><td>TTL</td><td>1 byte</td><td>Hops remaining. Linux=64 · Windows=128 · Cisco=255</td></tr>
+          <tr><td>Protocol</td><td>1 byte</td><td>What's inside: 6=TCP · 17=UDP · 1=ICMP</td></tr>
+          <tr><td>Source IP</td><td>4 bytes</td><td>Sender's IP address</td></tr>
+          <tr><td>Destination IP</td><td>4 bytes</td><td>Receiver's IP address</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-label">▸ TTL FINGERPRINTING</div>
+      You can guess the OS of a sender by looking at the TTL value:<br>
+      TTL ≈ 64 → <strong>Linux / macOS / Android</strong><br>
+      TTL ≈ 128 → <strong>Windows</strong><br>
+      TTL ≈ 255 → <strong>Cisco / network devices</strong><br>
+      The actual TTL you see is reduced by router hops — a Windows machine 3 hops away shows TTL=125.
+    </div>
+
+    <div class="subsection-title">ICMP Types</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>TYPE</th><th>NAME</th><th>MEANING</th></tr></thead>
+        <tbody>
+          <tr><td>Type 0</td><td>Echo Reply</td><td>Response to a ping</td></tr>
+          <tr><td>Type 3</td><td>Destination Unreachable</td><td>Packet could not be delivered</td></tr>
+          <tr><td>Type 8</td><td>Echo Request</td><td>A ping being sent</td></tr>
+          <tr><td>Type 11</td><td>Time Exceeded</td><td>TTL hit zero — used by traceroute</td></tr>
+          <tr><td>Type 3 Code 3</td><td>Port Unreachable</td><td>UDP packet hit a closed port</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4.3 Layer 4 -->
+    <div class="section-title">4.3 — Layer 4: TCP &amp; UDP</div>
+
+    <div class="subsection-title">TCP Flags</div>
+    <div class="flag-grid">
+      <div class="flag-item"><div class="flag-name">SYN</div><div class="flag-bit">Synchronize</div><div class="flag-desc">Start a new connection. First packet of 3-way handshake.</div></div>
+      <div class="flag-item"><div class="flag-name">ACK</div><div class="flag-bit">Acknowledge</div><div class="flag-desc">Acknowledging received data. Almost all packets after SYN.</div></div>
+      <div class="flag-item"><div class="flag-name">FIN</div><div class="flag-bit">Finish</div><div class="flag-desc">Gracefully close connection. Normal termination.</div></div>
+      <div class="flag-item" style="border-color:rgba(255,69,96,0.4)"><div class="flag-name" style="color:var(--red)">RST</div><div class="flag-bit">Reset</div><div class="flag-desc">Abruptly kill connection. Port closed or firewall block.</div></div>
+      <div class="flag-item"><div class="flag-name">PSH</div><div class="flag-bit">Push</div><div class="flag-desc">Send data immediately without buffering.</div></div>
+      <div class="flag-item"><div class="flag-name">URG</div><div class="flag-bit">Urgent</div><div class="flag-desc">Urgent data in packet. Rare.</div></div>
+    </div>
+
+    <div class="subsection-title">TCP 3-Way Handshake</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>STEP</th><th>PACKET</th><th>FLAGS</th><th>MEANING</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Client → Server</td><td><code>SYN</code></td><td>Client: I want to connect. My starting sequence is 0.</td></tr>
+          <tr><td>2</td><td>Server → Client</td><td><code>SYN, ACK</code></td><td>Server: OK. My sequence is 0. I confirm your byte 0.</td></tr>
+          <tr><td>3</td><td>Client → Server</td><td><code>ACK</code></td><td>Client: Confirmed. Now let's send data.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="filter-block">
+      <div class="filter-block-title">DISPLAY FILTERS — TCP</div>
+      <div class="filter-line"><span class="f">tcp.flags.syn == 1 &amp;&amp; tcp.flags.ack == 0</span><span class="c">// new connections / SYN scan</span></div>
+      <div class="filter-line"><span class="f">tcp.flags.reset == 1</span><span class="c">// connection resets — closed ports</span></div>
+      <div class="filter-line"><span class="f">tcp.flags.fin == 1</span><span class="c">// connection teardowns</span></div>
+      <div class="filter-line"><span class="f">tcp.stream eq 5</span><span class="c">// follow stream #5</span></div>
+      <div class="filter-line"><span class="f">tcp.analysis.retransmission</span><span class="c">// detect packet loss</span></div>
+    </div>
+
+    <!-- 4.4 Layer 7 -->
+    <div class="section-title">4.4 — Layer 7: Application Protocols</div>
+
+    <div class="subsection-title">DNS — Domain Name System</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>RECORD TYPE</th><th>WHAT IT DOES</th><th>EXAMPLE</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Maps hostname to IPv4 address</td><td>raghv.dev → 104.21.x.x</td></tr>
+          <tr><td>AAAA</td><td>Maps hostname to IPv6 address</td><td>raghv.dev → 2606:...</td></tr>
+          <tr><td>CNAME</td><td>Alias — points to another hostname</td><td>www → raghv.dev</td></tr>
+          <tr><td>MX</td><td>Mail server for a domain</td><td>raghv.dev mail → mail.raghv.dev</td></tr>
+          <tr><td>PTR</td><td>Reverse lookup — IP to hostname</td><td>192.168.1.1 → router.local</td></tr>
+          <tr><td>TXT</td><td>Text record — SPF, DKIM, verification</td><td>v=spf1 include:... -all</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">▸ ATTACK: DNS EXFILTRATION &amp; TUNNELING</div>
+      <span class="attack-badge">⚠ DNS EXFIL</span> <span class="attack-badge">⚠ DNS TUNNEL</span> <span class="attack-badge">⚠ CACHE POISON</span><br><br>
+      Look for: very long query names, high-entropy random-looking subdomains, many queries to the same unusual domain.<br>
+      Tools like <code>dnscat2</code> and <code>iodine</code> use DNS as full C2 channel.<br>
+      Detection: <code>dns.qry.name.len > 50</code>
+    </div>
+
+    <div class="subsection-title">HTTP Methods</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>METHOD</th><th>WHAT IT DOES</th><th>SECURITY RELEVANCE</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td>Retrieve a resource</td><td>Parameters in URL — visible in Wireshark</td></tr>
+          <tr><td>POST</td><td>Send data to server</td><td>Body may contain login credentials</td></tr>
+          <tr><td>PUT</td><td>Upload/replace a resource</td><td>Watch for large POST/PUT to unusual paths</td></tr>
+          <tr><td>DELETE</td><td>Delete a resource</td><td>Destructive — flag in SOC context</td></tr>
+          <tr><td>OPTIONS</td><td>What methods does server support?</td><td>Reconnaissance — mapping server capabilities</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-label">▸ FINDING CREDENTIALS IN HTTP</div>
+      Right-click any HTTP packet → <strong>Follow → HTTP Stream</strong>. You can read every HTTP header, URL, cookie, form field, and response body. This is how you find plaintext credentials in a capture.
+    </div>
+
+    <div class="subsection-title">TLS Handshake Messages</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>MESSAGE</th><th>MEANING</th></tr></thead>
+        <tbody>
+          <tr><td>Client Hello</td><td>Client says: here are the TLS versions and cipher suites I support</td></tr>
+          <tr><td>Server Hello</td><td>Server says: I choose this TLS version and cipher suite</td></tr>
+          <tr><td>Certificate</td><td>Server sends its SSL certificate — includes domain name (verify this!)</td></tr>
+          <tr><td>Application Data</td><td>Encrypted payload — you cannot read this without the private key</td></tr>
+          <tr><td>Alert</td><td>Error or close notification (e.g., certificate_unknown, bad_certificate)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout soc">
+      <div class="callout-label">▸ READING SNI IN ENCRYPTED TRAFFIC</div>
+      In the Client Hello packet, expand: <code>TLS → Handshake Protocol → Extension: server_name → Server Name</code><br><br>
+      The SNI shows the <strong>domain name</strong> the client is connecting to, even in encrypted HTTPS traffic. Critical for SOC — you can identify which sites/services are accessed through TLS <em>without decrypting anything</em>.
+    </div>
+
+    <div class="subsection-title">Kerberos Attack Types</div>
+    <div class="callout warn">
+      <div class="callout-label">▸ KERBEROS ATTACKS IN ACTIVE DIRECTORY</div>
+      <span class="attack-badge">⚠ KERBEROASTING</span>
+      <span class="attack-badge">⚠ AS-REP ROASTING</span>
+      <span class="attack-badge">⚠ PASS THE TICKET</span>
+      <span class="attack-badge">⚠ GOLDEN TICKET</span><br><br>
+      <strong>Kerberoasting:</strong> attacker requests service tickets for service accounts, cracks them offline. Filter: <code>kerberos.msg_type == 30</code> from unusual sources.<br>
+      <strong>Golden Ticket:</strong> forging a TGT using the KRBTGT hash — gives permanent domain admin access.
+    </div>
+  </div>
+
+  <!-- ═══════════════════ CHAPTER 5 ═══════════════════ -->
+  <div class="chapter" id="ch5">
+    <div class="chapter-header">
+      <span class="chapter-num">CH · 05</span>
+      <h2 class="chapter-title">Common Port Numbers Reference</h2>
+    </div>
+
+    <div class="port-grid">
+      <div class="port-item danger"><span class="port-num">21</span><div class="port-info"><div class="port-name">FTP Control</div><div class="port-proto">TCP · PLAINTEXT · INSECURE</div></div></div>
+      <div class="port-item secure"><span class="port-num">22</span><div class="port-info"><div class="port-name">SSH</div><div class="port-proto">TCP · ENCRYPTED</div></div></div>
+      <div class="port-item danger"><span class="port-num">23</span><div class="port-info"><div class="port-name">Telnet</div><div class="port-proto">TCP · PLAINTEXT · NEVER USE</div></div></div>
+      <div class="port-item neutral"><span class="port-num">25</span><div class="port-info"><div class="port-name">SMTP</div><div class="port-proto">TCP · Email sending</div></div></div>
+      <div class="port-item neutral"><span class="port-num">53</span><div class="port-info"><div class="port-name">DNS</div><div class="port-proto">TCP/UDP · Domain resolution</div></div></div>
+      <div class="port-item danger"><span class="port-num">80</span><div class="port-info"><div class="port-name">HTTP</div><div class="port-proto">TCP · PLAINTEXT WEB</div></div></div>
+      <div class="port-item neutral"><span class="port-num">88</span><div class="port-info"><div class="port-name">Kerberos</div><div class="port-proto">TCP/UDP · Windows AD auth</div></div></div>
+      <div class="port-item neutral"><span class="port-num">110</span><div class="port-info"><div class="port-name">POP3</div><div class="port-proto">TCP · Email retrieval</div></div></div>
+      <div class="port-item neutral"><span class="port-num">123</span><div class="port-info"><div class="port-name">NTP</div><div class="port-proto">UDP · Clock sync</div></div></div>
+      <div class="port-item neutral"><span class="port-num">135</span><div class="port-info"><div class="port-name">RPC / MSRPC</div><div class="port-proto">TCP · Windows RPC</div></div></div>
+      <div class="port-item neutral"><span class="port-num">137</span><div class="port-info"><div class="port-name">NetBIOS NS</div><div class="port-proto">UDP · Legacy Windows name res</div></div></div>
+      <div class="port-item danger"><span class="port-num">389</span><div class="port-info"><div class="port-name">LDAP</div><div class="port-proto">TCP · AD queries · PLAINTEXT</div></div></div>
+      <div class="port-item secure"><span class="port-num">443</span><div class="port-info"><div class="port-name">HTTPS</div><div class="port-proto">TCP · Encrypted web (TLS)</div></div></div>
+      <div class="port-item danger"><span class="port-num">445</span><div class="port-info"><div class="port-name">SMB</div><div class="port-proto">TCP · Windows file sharing · CRITICAL</div></div></div>
+      <div class="port-item secure"><span class="port-num">636</span><div class="port-info"><div class="port-name">LDAPS</div><div class="port-proto">TCP · Encrypted AD queries</div></div></div>
+      <div class="port-item neutral"><span class="port-num">3389</span><div class="port-info"><div class="port-name">RDP</div><div class="port-proto">TCP · Windows Remote Desktop</div></div></div>
+      <div class="port-item neutral"><span class="port-num">5985</span><div class="port-info"><div class="port-name">WinRM HTTP</div><div class="port-proto">TCP · Windows Remote Mgmt</div></div></div>
+      <div class="port-item danger"><span class="port-num">1433</span><div class="port-info"><div class="port-name">MSSQL</div><div class="port-proto">TCP · Microsoft SQL Server</div></div></div>
+    </div>
+
+    <p style="margin-top:16px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim)">
+      🔴 RED = plaintext / insecure &nbsp;&nbsp; 🟢 GREEN = encrypted / secure &nbsp;&nbsp; ⚪ GRAY = protocol dependent
+    </p>
+  </div>
+
+  <!-- ═══════════════════ CHAPTER 6 ═══════════════════ -->
+  <div class="chapter" id="ch6">
+    <div class="chapter-header">
+      <span class="chapter-num">CH · 06</span>
+      <h2 class="chapter-title">Display Filter Complete Reference</h2>
+    </div>
+
+    <div class="section-title">6.1 — Filter Operators</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>OPERATOR</th><th>SYMBOL</th><th>EXAMPLE</th></tr></thead>
+        <tbody>
+          <tr><td>Equal</td><td><code>==</code></td><td><code>ip.src == 192.168.1.1</code></td></tr>
+          <tr><td>Not Equal</td><td><code>!=</code></td><td><code>tcp.port != 80</code></td></tr>
+          <tr><td>Greater Than</td><td><code>&gt;</code></td><td><code>frame.len > 1000</code></td></tr>
+          <tr><td>Less Than</td><td><code>&lt;</code></td><td><code>ip.ttl < 10</code></td></tr>
+          <tr><td>AND</td><td><code>&amp;&amp;</code></td><td><code>ip.src == 1.1.1.1 &amp;&amp; tcp</code></td></tr>
+          <tr><td>OR</td><td><code>||</code></td><td><code>tcp.port == 80 || tcp.port == 443</code></td></tr>
+          <tr><td>NOT</td><td><code>!</code></td><td><code>!arp</code></td></tr>
+          <tr><td>Contains</td><td><code>contains</code></td><td><code>http contains "password"</code></td></tr>
+          <tr><td>Regex</td><td><code>matches</code></td><td><code>dns.qry.name matches ".*google.*"</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">6.2 — Filters by Scenario</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>SCENARIO</th><th>FILTER</th></tr></thead>
+        <tbody>
+          <tr><td>Traffic between two hosts</td><td><code>ip.addr == 10.0.0.1 &amp;&amp; ip.addr == 10.0.0.2</code></td></tr>
+          <tr><td>Catch nmap SYN port scan</td><td><code>tcp.flags.syn == 1 &amp;&amp; tcp.flags.ack == 0</code></td></tr>
+          <tr><td>See closed ports</td><td><code>tcp.flags.reset == 1</code></td></tr>
+          <tr><td>Find cleartext web traffic</td><td><code>http</code></td></tr>
+          <tr><td>Failed web auth</td><td><code>http.response.code == 401</code></td></tr>
+          <tr><td>Sites visited (HTTPS)</td><td><code>tls.handshake.extensions_server_name</code></td></tr>
+          <tr><td>Large data transfers</td><td><code>frame.len > 1400</code></td></tr>
+          <tr><td>Exclude noisy background</td><td><code>!(arp || ssdp || mdns || icmpv6)</code></td></tr>
+          <tr><td>DNS exfiltration (long names)</td><td><code>dns.qry.name.len > 50</code></td></tr>
+          <tr><td>ARP spoofing</td><td><code>arp.duplicate-address-detected</code></td></tr>
+          <tr><td>SSH brute force</td><td><code>tcp.port == 22 &amp;&amp; tcp.flags == 0x002</code></td></tr>
+          <tr><td>Kerberos login attempts</td><td><code>kerberos.msg_type == 10</code></td></tr>
+          <tr><td>SMB file access</td><td><code>smb2.cmd == 0x0005</code></td></tr>
+          <tr><td>Large ICMP (possible tunnel)</td><td><code>icmp &amp;&amp; frame.len > 100</code></td></tr>
+          <tr><td>Retransmissions</td><td><code>tcp.analysis.retransmission</code></td></tr>
+          <tr><td>Isolate one TCP stream</td><td><code>tcp.stream eq 0</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">6.3 — Keyboard Shortcuts</div>
+    <div class="shortcut-grid">
+      <div class="shortcut-item"><span class="kbd">Ctrl + /</span><span class="kbd-desc">Focus the display filter bar</span></div>
+      <div class="shortcut-item"><span class="kbd">Ctrl + E</span><span class="kbd-desc">Start / stop capture</span></div>
+      <div class="shortcut-item"><span class="kbd">Ctrl + K</span><span class="kbd-desc">Open capture options</span></div>
+      <div class="shortcut-item"><span class="kbd">Ctrl + S</span><span class="kbd-desc">Save capture</span></div>
+      <div class="shortcut-item"><span class="kbd">Ctrl + F</span><span class="kbd-desc">Find packet (string or hex)</span></div>
+      <div class="shortcut-item"><span class="kbd">Ctrl + G</span><span class="kbd-desc">Go to packet number</span></div>
+      <div class="shortcut-item"><span class="kbd">Right-click → Follow → TCP Stream</span><span class="kbd-desc">Reassemble &amp; read TCP conversation</span></div>
+      <div class="shortcut-item"><span class="kbd">Right-click → Apply as Filter</span><span class="kbd-desc">Auto-build filter from clicked field</span></div>
+      <div class="shortcut-item"><span class="kbd">Statistics → Protocol Hierarchy</span><span class="kbd-desc">Breakdown of all protocols in capture</span></div>
+      <div class="shortcut-item"><span class="kbd">Analyze → Expert Information</span><span class="kbd-desc">Wireshark flags errors &amp; warnings</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ CHAPTER 7 ═══════════════════ -->
+  <div class="chapter" id="ch7">
+    <div class="chapter-header">
+      <span class="chapter-num">CH · 07</span>
+      <h2 class="chapter-title">Home Lab Attack Scenarios</h2>
+    </div>
+
+    <p>These are the captures you should be doing in your lab (<strong>Kali → WEB01/DC01</strong> on Ethernet 2 / 192.168.56.x) to build your skills and LinkedIn portfolio.</p>
+
+    <div class="scenario">
+      <div class="scenario-header">
+        <span class="scenario-icon">🔍</span>
+        <span class="scenario-title">SCENARIO 7.1 — NMAP PORT SCAN DETECTION</span>
+      </div>
+      <div class="scenario-steps">
+        <div class="step"><span class="step-num">STEP 01</span><span class="step-action">Start Wireshark on Ethernet 2</span><span class="step-detail">Select the 192.168.56.1 interface on Windows (or eth1 on Kali)</span></div>
+        <div class="step"><span class="step-num">STEP 02</span><span class="step-action">Run SYN scan from Kali</span><span class="step-detail"><code>nmap -sS 192.168.56.101</code></span></div>
+        <div class="step"><span class="step-num">STEP 03</span><span class="step-action">Apply display filter</span><span class="step-detail"><code>tcp.flags.syn == 1 &amp;&amp; tcp.flags.ack == 0</code></span></div>
+        <div class="step"><span class="step-num">STEP 04</span><span class="step-action">Observe the flood</span><span class="step-detail">Rapid SYN packets to ports 1, 2, 3... across all ports</span></div>
+        <div class="step"><span class="step-num">STEP 05</span><span class="step-action">Filter RSTs</span><span class="step-detail"><code>tcp.flags.reset == 1</code> — closed ports respond with RST</span></div>
+        <div class="step"><span class="step-num">STEP 06</span><span class="step-action">Export as PNG</span><span class="step-detail">File → Export Specified Packets, or screenshot the SYN flood</span></div>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-header">
+        <span class="scenario-icon">☠️</span>
+        <span class="scenario-title">SCENARIO 7.2 — ARP POISONING / MITM</span>
+      </div>
+      <div class="scenario-steps">
+        <div class="step"><span class="step-num">STEP 01</span><span class="step-action">Enable IP forwarding on Kali</span><span class="step-detail"><code>echo 1 > /proc/sys/net/ipv4/ip_forward</code></span></div>
+        <div class="step"><span class="step-num">STEP 02</span><span class="step-action">Run arpspoof</span><span class="step-detail"><code>arpspoof -i eth1 -t 192.168.56.101 192.168.56.1</code></span></div>
+        <div class="step"><span class="step-num">STEP 03</span><span class="step-action">Start Wireshark on Ethernet 2</span><span class="step-detail">Capture interface eth1 on Kali</span></div>
+        <div class="step"><span class="step-num">STEP 04</span><span class="step-action">Apply filter</span><span class="step-detail"><code>arp</code> — watch for duplicate ARP replies</span></div>
+        <div class="step"><span class="step-num">STEP 05</span><span class="step-action">Check for MITM</span><span class="step-detail">Traffic from WEB01 now routes through Kali before reaching gateway</span></div>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-header">
+        <span class="scenario-icon">🔑</span>
+        <span class="scenario-title">SCENARIO 7.3 — CLEARTEXT CREDENTIAL CAPTURE (FTP/TELNET)</span>
+      </div>
+      <div class="scenario-steps">
+        <div class="step"><span class="step-num">STEP 01</span><span class="step-action">Boot Metasploitable2 VM</span><span class="step-detail">Add to host-only adapter, gets 192.168.56.x IP</span></div>
+        <div class="step"><span class="step-num">STEP 02</span><span class="step-action">Start Wireshark capture</span><span class="step-detail">Select Ethernet 2, no filter yet</span></div>
+        <div class="step"><span class="step-num">STEP 03</span><span class="step-action">Telnet to Metasploitable from Kali</span><span class="step-detail"><code>telnet 192.168.56.x</code></span></div>
+        <div class="step"><span class="step-num">STEP 04</span><span class="step-action">Log in with msfadmin/msfadmin</span><span class="step-detail">Watch Wireshark as you type</span></div>
+        <div class="step"><span class="step-num">STEP 05</span><span class="step-action">Apply filter &amp; follow stream</span><span class="step-detail"><code>telnet</code> → then Follow TCP Stream</span></div>
+        <div class="step"><span class="step-num">STEP 06</span><span class="step-action">See the credentials</span><span class="step-detail">Both username and password appear in plaintext in the stream</span></div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-label">▸ LINKEDIN POST TIP — THE FULL SOC PIPELINE</div>
+      Combine Scenario 7.1 with a Wazuh alert screenshot. Your narrative:<br><br>
+      <strong>Step 1:</strong> Simulated a port scan from Kali against WEB01<br>
+      <strong>Step 2:</strong> Wireshark captured the SYN flood (screenshot with filter <code>tcp.flags.syn==1 &amp;&amp; tcp.flags.ack==0</code>)<br>
+      <strong>Step 3:</strong> Wazuh SIEM fired an alert for the scan (screenshot the Wazuh alert)<br><br>
+      This shows the full <strong>attacker → detection pipeline</strong>. That is a real SOC analyst workflow, and it stands out.
+    </div>
+  </div>
+
+  <!-- ═══════════════════ FOOTER ═══════════════════ -->
+  <div class="footer">
+    <div class="footer-logo">HOMELAB CORP</div>
+    <div class="footer-links">
+      <a href="https://raghv.dev">raghv.dev</a>
+      <a href="https://discord.gg/CZQNGxtr">discord.gg/CZQNGxtr</a>
+      <a href="https://github.com/HomeLab-Raghav">GitHub: HomeLab-Raghav</a>
+    </div>
+    <div class="footer-copy">CONFIDENTIAL — HOMELAB USE ONLY · SECURITY+ 2026 PREP SERIES · RAGHAV © 2026</div>
+  </div>
+
+</div>
+</body>
+</html>
